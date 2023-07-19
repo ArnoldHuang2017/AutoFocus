@@ -1,0 +1,65 @@
+sudo pip install opencv-contrib-python==4.5.4.60
+git clone https://github.com/IntelRealSense/librealsense.git
+sudo apt-get install git cmake libssl-dev libusb-1.0-0-dev pkg-config libgtk-3-dev
+sudo apt-get install libglfw3-dev libgl1-mesa-dev libglu1-mesa-dev
+
+sudo apt-get install dphys-swapfile  # 安装dphys-swapfile，该软件自动设置为内存的两倍大小
+sudo nano /etc/dphys-swapfile  # 将 CONF_SWAPSIZE 和 CONF_MAXSWAP 这俩值修改成想要的大小，一般内存小于2G的情况下，交换分区应为内存的2倍
+sudo /etc/init.d/dphys-swapfile restart  # 重启
+free -h  # 查看结果
+
+Got the same error ; had to add "find_package(glfw3)" line 75 in file librealsense/CMakeLists.txt
+
+Here is my new CMakeLists.txt 👍
+
+# global project configuration
+# macro definition located at "CMake/global_config.cmake"
+global_target_config()
+
+include(CMake/install_config.cmake)
+
+# HERE***
+find_package(glfw3)
+
+add_subdirectory(wrappers)
+if ( ( BUILD_EXAMPLES OR BUILD_PC_STITCHING ) AND BUILD_GLSL_EXTENSIONS )
+    find_package(glfw3 3.3 QUIET)
+    if(NOT TARGET glfw)
+        message(STATUS "GLFW 3.3 not found; using internal version")
+        set(GLFW_INSTALL ON CACHE BOOL "" FORCE)
+        add_subdirectory(third-party/glfw)
+    endif()
+    add_subdirectory(src/gl)
+endif()
+
+
+
+mv librealsense-master librealsense #给解压后的包改名
+cd librealsense
+mkdir build && cd build
+ cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=true -DFORCE_RSUSB_BACKEND=ON -DBUILD_WITH_TM2=false -DIMPORT_DEPTH_CAM_FW=false
+make 
+
+
+
+sudo make install
+cmake .. -DBUILD_PYTHON_BINDINGS=bool:true -DPYTHON_EXECUTABLE=$(which python3)
+make -j1
+sudo make install
+
+ 解决ASSERT: "false" in file qasciikey.cpp, line 501 Aborted (core dumped) 
+
+使用MobaXterm跑SSD+DeepSORT代码时，报出错误：
+
+ASSERT: "false" in file qasciikey.cpp, line 501
+Aborted (core dumped)
+
+网络上有的教程是重新安装opencv-python，这个很不推荐，因为我的程序之前是能跑通的，只是换了一台新电脑，不可能虚拟环境变了。
+
+所以很大可能是MobaXterm本身的设置问题。
+
+查阅相关博客以后，再MobaXterm设置里改个选项就好。具体操作如下：
+
+1.软件左上角找到settings
+ 2.点击，选中configuration
+ 3.进入configuration以后，找到X11，去除Unix-compatible keyboard前面的选项（不能勾选它）

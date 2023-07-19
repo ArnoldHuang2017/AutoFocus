@@ -1,0 +1,110 @@
+current_lens: 3
+ROI_LENGTH: 85
+LENS_1:
+  closest: 600.0
+  length: 58
+  col: 1
+  data:
+  - 440.0
+  - 5360.0
+  - 6129.0
+  - 7100.0
+  - 7720.0
+  - 7770.0
+  dt: d
+  name: Blazar_Nero
+  row: 6
+LENS_2:
+  closest: 600.0
+  length: 45
+  col: 1
+  data:
+  - 1449
+  - 6574
+  - 7150
+  - 7454
+  - 7850
+  - 8430
+  dt: d
+  name: minolta45f2
+  row: 6
+LENS_3:
+  closest: 500.0
+  length: 58
+  col: 1
+  data:
+  - 100
+  - 7420
+  - 8070
+  - 8470
+  - 8760
+  - 8910
+  dt: d
+  name: Hellios442
+  row: 6
+LENS_4:
+  col: 1
+  data:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  dt: d
+  row: 5
+LENS_5:
+  col: 1
+  data:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  dt: d
+  row: 5
+LENS_6:
+  col: 1
+  data:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  dt: d
+  row: 5
+LENS_7:
+  col: 1
+  data:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  dt: d
+  row: 5
+LENS_8:
+  col: 1
+  data:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  dt: d
+  row: 5
+LENS_9:
+  col: 1
+  data:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  dt: d
+  row: 5
