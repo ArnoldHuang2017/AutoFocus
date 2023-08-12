@@ -50,7 +50,7 @@ class NucleusNHandler(object):
                 num_2 = res[0][10]
                 num_3 = res[0][11]
                 num_4 = res[0][12]
-                position_string =  f"{num_1}{num_2}{num_3}{num_4}"
+                position_string = f"{num_1}{num_2}{num_3}{num_4}"
                 try:
                     motor_position = int(position_string, 16)
                     if self._wheel_event_callback:
@@ -92,4 +92,3 @@ class NucleusNHandler(object):
 
     def ClearWheelHandler(self):
         self._wheel_event_callback = None
-

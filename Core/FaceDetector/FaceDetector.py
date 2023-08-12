@@ -92,6 +92,90 @@ class FaceDetector(object):
         else:
             return False
 
+    # def detect(self, color_image, depth_frame):
+    #     gray = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+    #     faces = self.face_cascade.detectMultiScale(gray, scaleFactor=self.scale_factor, minNeighbors=self.min_neighbors)
+    #
+    #     all_faces_data = []
+    #
+    #     for face in faces:
+    #         # Personal decide that won't to detect too small face.
+    #         distance_data = {"face": None, "eyes": []}
+    #         (x, y, w, h) = face
+    #         if w <= 100 or h <= 100:
+    #             continue
+    #
+    #         center_face_x = x + w // 2
+    #         center_face_y = y + h // 2
+    #
+    #         if not self.is_point_inside_box(x, y, w, h, center_face_x, center_face_y):
+    #             continue
+    #
+    #         distance_data["face"] = depth_frame.get_distance(center_face_x + VAR.ROI_TOP_X,
+    #                                                          center_face_y + VAR.ROI_TOP_Y) * 1000
+    #
+    #         # 此处的x y w h 是脸在裁切后的图像 color里的坐标， 所以方框直接画就行。
+    #         cv2.rectangle(color_image, (x, y), (x + w, y + h), (0, 0, 255), 1)
+    #
+    #         # detect eyes on face only
+    #         eyes = self.detect_eye(color_image, gray, face)
+    #
+    #         for (ex, ey, ew, eh) in eyes:
+    #             # 此处的ex ey ew eh 是在脸的截图中的坐标，所以需要还原到脸被截图之前的坐标系
+    #             center_eye_x = ex + ew // 2
+    #             center_eye_y = ey + eh // 2
+    #
+    #             distance_data["eyes"].append(
+    #                 depth_frame.get_distance(x + center_eye_x + VAR.ROI_TOP_X, y + center_eye_y + VAR.ROI_TOP_Y) * 1000)
+    #
+    #             cv2.rectangle(color_image, (x + ex, y + ey), (x + ex + ew, y + ey + eh), (0, 0, 255), 1)
+    #             cv2.circle(color_image, (x + center_eye_x, y + center_eye_y), 6, (255, 0, 0), -1)
+    #
+    #         if len(eyes) > 2:
+    #             # if detect more than 2 eyes after remove possible nod
+    #             pass
+    #
+    #         all_faces_data.append(distance_data)
+    #
+    #     if len(faces) == 0:
+    #         profiles = self.profile_cascade.detectMultiScale(gray, scaleFactor=self.scale_factor,
+    #                                                          minNeighbors=self.min_neighbors)
+    #         for face in profiles:
+    #             # Personal decide that won't to detect too small face.
+    #             distance_data = {"face": None, "eyes": []}
+    #             (x, y, w, h) = face
+    #
+    #             if w <= 100 or h <= 100:
+    #                 continue
+    #
+    #             cv2.rectangle(color_image, (x, y), (x + w, y + h), (0, 0, 255), 1)
+    #
+    #             center_face_x = x + w // 2
+    #             center_face_y = y + h // 2
+    #             distance_data["face"] = depth_frame.get_distance(center_face_x + VAR.ROI_TOP_X,
+    #                                                              center_face_y + VAR.ROI_TOP_Y) * 1000
+    #
+    #             cv2.circle(color_image, (center_face_x, center_face_y), 6, (255, 0, 0),
+    #                        -1)
+    #
+    #             # detect eyes on face only
+    #             eyes = self.detect_eye(color_image, gray, face)
+    #
+    #             for (ex, ey, ew, eh) in eyes:
+    #                 center_eye_x = ex + ew // 2
+    #                 center_eye_y = ey + eh // 2
+    #                 distance_data["eyes"].append(depth_frame.get_distance(x + center_eye_x + VAR.ROI_TOP_X,
+    #                                                                       y + center_eye_y + VAR.ROI_TOP_Y) * 1000)
+    #                 cv2.rectangle(color_image, (x + ex, y + ey), (x + ex + ew, y + ey + eh), (0, 0, 255), 1)
+    #                 cv2.circle(color_image, (x + center_eye_x, y + center_eye_y), 6, (255, 0, 0), -1)
+    #
+    #             if len(eyes) > 2:
+    #                 # if detect more than 2 eyes after remove possible nod
+    #                 pass
+    #     # cv2.waitKey(1)
+    #     # cv2.imshow("face", color_image)
+    #     return color_image, all_faces_data
+
     def detect(self, color_image, depth_frame):
         gray = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
         faces = self.face_cascade.detectMultiScale(gray, scaleFactor=self.scale_factor, minNeighbors=self.min_neighbors)
@@ -114,64 +198,7 @@ class FaceDetector(object):
             distance_data["face"] = depth_frame.get_distance(center_face_x + VAR.ROI_TOP_X,
                                                              center_face_y + VAR.ROI_TOP_Y) * 1000
 
-            # 此处的x y w h 是脸在裁切后的图像 color里的坐标， 所以方框直接画就行。
-            cv2.rectangle(color_image, (x, y), (x + w, y + h), (0, 0, 255), 1)
-
-            # detect eyes on face only
-            eyes = self.detect_eye(color_image, gray, face)
-
-            for (ex, ey, ew, eh) in eyes:
-                # 此处的ex ey ew eh 是在脸的截图中的坐标，所以需要还原到脸被截图之前的坐标系
-                center_eye_x = ex + ew // 2
-                center_eye_y = ey + eh // 2
-
-                distance_data["eyes"].append(
-                    depth_frame.get_distance(x + center_eye_x + VAR.ROI_TOP_X, y + center_eye_y + VAR.ROI_TOP_Y) * 1000)
-
-                cv2.rectangle(color_image, (x + ex, y + ey), (x + ex + ew, y + ey + eh), (0, 0, 255), 1)
-                cv2.circle(color_image, (x + center_eye_x, y + center_eye_y), 6, (255, 0, 0), -1)
-
-            if len(eyes) > 2:
-                # if detect more than 2 eyes after remove possible nod
-                pass
-
             all_faces_data.append(distance_data)
-
-        if len(faces) == 0:
-            profiles = self.profile_cascade.detectMultiScale(gray, scaleFactor=self.scale_factor,
-                                                             minNeighbors=self.min_neighbors)
-            for face in profiles:
-                # Personal decide that won't to detect too small face.
-                distance_data = {"face": None, "eyes": []}
-                (x, y, w, h) = face
-
-                if w <= 100 or h <= 100:
-                    continue
-
-                cv2.rectangle(color_image, (x, y), (x + w, y + h), (0, 0, 255), 1)
-
-                center_face_x = x + w // 2
-                center_face_y = y + h // 2
-                distance_data["face"] = depth_frame.get_distance(center_face_x + VAR.ROI_TOP_X,
-                                                                 center_face_y + VAR.ROI_TOP_Y) * 1000
-
-                cv2.circle(color_image, (center_face_x, center_face_y), 6, (255, 0, 0),
-                           -1)
-
-                # detect eyes on face only
-                eyes = self.detect_eye(color_image, gray, face)
-
-                for (ex, ey, ew, eh) in eyes:
-                    center_eye_x = ex + ew // 2
-                    center_eye_y = ey + eh // 2
-                    distance_data["eyes"].append(depth_frame.get_distance(x + center_eye_x + VAR.ROI_TOP_X,
-                                                                          y + center_eye_y + VAR.ROI_TOP_Y) * 1000)
-                    cv2.rectangle(color_image, (x + ex, y + ey), (x + ex + ew, y + ey + eh), (0, 0, 255), 1)
-                    cv2.circle(color_image, (x + center_eye_x, y + center_eye_y), 6, (255, 0, 0), -1)
-
-                if len(eyes) > 2:
-                    # if detect more than 2 eyes after remove possible nod
-                    pass
         # cv2.waitKey(1)
         # cv2.imshow("face", color_image)
         return color_image, all_faces_data

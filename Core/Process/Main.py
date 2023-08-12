@@ -83,10 +83,10 @@ class MainProcess(object):
             params = ReadYaml("/home/ubuntu/AutoFocus/len_param.yaml")
             if params:
                 VAR.LENS_NUMBER = int(params["current_lens"])
-                VAR.ROI_LENGTH = float(params["ROI_LENGTH"])
+                VAR.ROI_LENGTH = lens_length * 1.25
                 lens_name = params[f"LENS_{VAR.LENS_NUMBER}"]["name"]
                 VAR.LENS_LENGTH = int(params[f"LENS_{VAR.LENS_NUMBER}"]["length"])
-                print(f"Will use the lens {lens_number} {lens_name} ({lens_length}mm) to auto focus")
+                print(f"Will use the lens {VAR.LENS_NUMBER} {lens_name} ({lens_length}mm) to auto focus")
             else:
                 lens_number = 1
         # 镜头初始化，目前没有镜头数据
@@ -96,7 +96,7 @@ class MainProcess(object):
             self.CreateNewLenData(lens_number, name, closest)
             exit()
         else:
-            zoom_rate = VAR.ROI_LENGTH / 26.
+            zoom_rate = VAR.ROI_LENGTH / 26
             VAR.CENTER_ROI_HEIGHT = int(RS2_HEIGHT / zoom_rate)
             VAR.CENTER_ROI_WIDTH = int(RS2_WIDTH / zoom_rate)
             VAR.CENTER_ROI_TOP_X = int((RS2_WIDTH - VAR.CENTER_ROI_WIDTH) / 2)
@@ -215,7 +215,7 @@ class MainProcess(object):
 
         delta_time = 1000 / fps
         if run_time - self.last_capture_time > delta_time:
-            print(f"Trigger time : {run_time}")
+            # print(f"Trigger time : {run_time}")
             self.last_capture_time = run_time
             return True
         return False
@@ -247,7 +247,7 @@ class MainProcess(object):
 
         # print(f"Detected {cnt} in the center area")
         # cv2.circle(color_image, (center_x, center_y), 6, (255, 0, 0), -1)
-        # print(distances)
+        # print(f"center area distances: {min_distance}")
 
         return min_distance, center_distance
 
@@ -264,55 +264,65 @@ class MainProcess(object):
         motor_position = 0
 
         if self.TimeTrigger(t0, fps):
+            mode = ""
+            is_print_fps = False
             if self.focus_method == MODE_FOCUSCENTER:
+                mode = "MODE_FOCUSCENTER"
                 target_distance, center_distance = self.CenterAreaFocus(color_image, depth_frame)
                 target_distance = int(target_distance)
-                print(f"Center: {target_distance}mm")
+                # print(f"Center: {target_distance}mm")
             else:
-                cropped_image, face_distance_list = self.face_detector.detect(cropped_image, depth_frame)
-                if len(face_distance_list) > 0:
-                    face_distance_numbers = [item["face"] for item in face_distance_list]
-                    eyes_distance_numbers = [num for elem in face_distance_list for num in elem["eyes"]]
-                    if face_distance_numbers:
-                        target_distance = int(min(face_distance_numbers))
-                        print(f"Get Face")
+                mode = "MODE_FOCUS_AI"
+                target_distance, center_distance = self.CenterAreaFocus(color_image, depth_frame)
 
-                    if eyes_distance_numbers:
-                        target_distance = int(min(eyes_distance_numbers))
-                        print(f"Get Eye")
+                if target_distance > 600:
+                    cropped_image, face_distance_list = self.face_detector.detect(cropped_image, depth_frame)
+                    if len(face_distance_list) > 0:
+                        is_print_fps = True
+                        face_distance_numbers = [item["face"] for item in face_distance_list]
+                        eyes_distance_numbers = [num for elem in face_distance_list for num in elem["eyes"]]
+                        if face_distance_numbers:
+                            target_distance = int(min(face_distance_numbers))
+                            print(f"================\n\n\n\n\nGet Face\n\n\n\n\n================")
 
-                else:
-                    outputs = self.yolo_mode.detect(cropped_image)
-                    cropped_image, obj_distance_list = self.yolo_mode.postprocess(cropped_image, outputs, depth_frame)
-                    if len(obj_distance_list) > 0:
-                        target_distance = int(min(obj_distance_list))
-                        print(f"Get Object")
+                        if eyes_distance_numbers:
+                            target_distance = int(min(eyes_distance_numbers))
+                            print(f"================\n\n\n\n\nGet Eye\n\n\n\n\n================")
+
                     else:
-                        target_distance, center_distance = self.CenterAreaFocus(color_image, depth_frame)
-                        target_distance = int(target_distance)
-                        print(f"Get Center")
+                        outputs = self.yolo_mode.detect(cropped_image)
+                        # cropped_image, obj_distance_list = self.yolo_mode.postprocess(cropped_image, outputs, depth_frame)
+                        obj_distance_list = []
+                        if len(obj_distance_list) > 0:
+                            is_print_fps = True
+                            target_distance = int(min(obj_distance_list))
+                            print(f"================\n\n\n\n\nGet Object\n\n\n\n\n================")
 
-
-        if 30000 > target_distance > 500:
             validated_distance = Distance().Calculate(target_distance)
-            print(f"Valid Distance: {target_distance}mm , After Kalman Filter: {validated_distance}")
-            motor_position = int(self.Lagrange(validated_distance))
-            # if abs(self.last_motor_position - motor_position) > 100:
+            # print(f"Valid Distance: {target_distance}mm , After Kalman Filter: {validated_distance}")
+
+            if validated_distance < 600:
+                motor_position = int(self.Lagrange(600))
+
+            elif validated_distance > 9500:
+                motor_position = 9900
+            else:
+                motor_position = int(self.Lagrange(validated_distance))
 
             if motor_position < 0:
-                motor_position = 0
+                motor_position = 400
             if motor_position > 9999:
-                motor_position = 9999
+                motor_position = 9900
 
-            if abs(motor_position - self.last_motor_position) > 100:
                 # timestamp = (cv2.getTickCount() - t0) * 1000 / cv2.getTickFrequency()
-                print(
-                    f"Goto new position: from {self.last_motor_position} to  {motor_position} for distance {validated_distance}")
-                self.last_motor_position = motor_position
-                NucleusN.MoveMotor(motor_position)
-        t2 = cv2.getTickCount()
-        actually_fps = int(1000 / ((t2 - t1) * 1000 / cv2.getTickFrequency()))
-        print(f"{t2 * 1000}: Actually FPS: {actually_fps}")
+            print(f"Goto new position: from {self.last_motor_position} to  {motor_position} for {validated_distance}")
+            self.last_motor_position = motor_position
+            NucleusN.MoveMotor(motor_position)
+
+            t2 = cv2.getTickCount()
+            actually_fps = int(1000 / ((t2 - t1) * 1000 / cv2.getTickFrequency()))
+            if is_print_fps:
+                print(f"{t2 * 1000}: {mode} Actually FPS: {actually_fps}")
         #
         # cv2.imshow("cropped_image", cropped_image)
         # cv2.imshow("color_image", color_image)

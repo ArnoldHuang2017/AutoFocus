@@ -33,7 +33,11 @@ class Distance(object):
             self.target_distance.PopFront()
 
         if not KALMAN_FILTER_ON:
-            return rs2_distance
+            if self.IsValid(rs2_distance):
+                self.target_distance.PushBack(rs2_distance)
+                return rs2_distance
+            else:
+                return self.target_distance.Back()
         else:
             self.timestamp.PushFront(cv2.getTickCount())
 
@@ -42,12 +46,12 @@ class Distance(object):
 
             if rs2_distance != 0:
                 if self.IsValid(rs2_distance):
-                    print("distance is correct")
+                    # print("distance is correct")
                     self.target_distance.PushBack(rs2_distance)
                     self.UpdateFilter()
                     return self.target_distance.Back()
                 elif not self.target_distance.IsEmpty():
-                    print("distance is not valid")
+                    # print("distance is not valid")
                     self.target_distance.PushBack(self.target_distance.Back())
                     self.UpdateFilter()
                     return self.target_distance.Back()
@@ -59,7 +63,7 @@ class Distance(object):
                 return self.target_distance.Back()
             else:
                 self.target_distance.PushBack(1000)
-                print("Out of detect limit")
+                # print("Out of detect limit")
                 return -1
         return 0
 
@@ -67,16 +71,19 @@ class Distance(object):
         if self.error_distance.Size() > 2:
             # print("Detect two error distance, get into a new platform.")
             self.error_distance.Clear()
+            self.target_distance.Clear()
+            self.target_distance.PushBack(current_distance)
+            print("\n\n\n====clear====\n\n\n")
             return True
 
         if not self.error_distance.IsEmpty():
             # if the current distance delta is lower than 10% * last error distance, then add it into error queue
             if abs(current_distance - self.error_distance.Back()) < self.error_distance.Back() * 0.1:
-                print(
-                    f"Current distance delta {abs(current_distance - self.error_distance.Back())} is less than 10% of last error distance {self.error_distance.Back()}. Error!")
+                # print(
+                #    f"Current distance delta {abs(current_distance - self.error_distance.Back())} is less than 10% of last error distance {self.error_distance.Back()}. Error!")
                 self.error_distance.PushBack(current_distance)
                 if self.error_distance.Size() <= 2:
-                    print("Return False")
+                    # print("Return False")
                     return False
 
         if self.target_distance.Size() > 1:
@@ -84,10 +91,10 @@ class Distance(object):
                 self.target_distance.Size() - 1) - current_distance)
             if delta > self.target_distance.GetIndex(
                     self.target_distance.Size() - 1) * 0.25:
-                print(
-                    f"Current distance delta {delta} is larger than 25% of last distance {self.target_distance.GetIndex(self.target_distance.Size() - 1)}. Error!")
+                # print(
+                #    f"Current distance delta {delta} is larger than 25% of last distance {self.target_distance.GetIndex(self.target_distance.Size() - 1)}. Error!")
                 self.error_distance.PushBack(current_distance)
-                print("Return False")
+                # print("Return False")
                 return False
 
         return True
@@ -107,7 +114,7 @@ class Distance(object):
             correct_vec = self.distance_filter.update(
                 np.array([[float(distance)], [float(delta_distance)]], dtype=np.float32))
 
-            if correct_vec[0][0] > 0:
+            if 9500 >= correct_vec[0][0] >= 500:
                 self.target_distance.UpdateBack(correct_vec[0][0])
                 distance = correct_vec[0][0]
 

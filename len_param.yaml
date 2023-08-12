@@ -1,8 +1,8 @@
-current_lens: 3
-ROI_LENGTH: 85
+current_lens: 1
+ROI_LENGTH: 70
 LENS_1:
   closest: 600.0
-  length: 58
+  length: 50
   col: 1
   data:
   - 440.0

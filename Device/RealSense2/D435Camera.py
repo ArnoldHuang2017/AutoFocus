@@ -3,6 +3,8 @@ import pyrealsense2 as rs2
 import numpy as np
 from Common import singleton, Timeout, Queue
 
+# RS2_WIDTH = 424
+# RS2_HEIGHT = 240
 RS2_WIDTH = 848
 RS2_HEIGHT = 480
 RS2_FPS = 30

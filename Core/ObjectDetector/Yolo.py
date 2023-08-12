@@ -7,7 +7,7 @@ from Device.RealSense2 import RS2_HEIGHT, RS2_WIDTH, RS2_HEIGHT_COMPENSATE, RS2_
 
 class YoloFastV2(object):
     def __init__(self, objThreshold=0.45, confThreshold=0.45, nmsThreshold=0.4):
-        with open('/home/ubuntu/AutoFocus/Data/coco.names', 'rt') as f:
+        with open('/home/ubuntu/AutoFocus/coco.names', 'rt') as f:
             self.classes = f.read().rstrip('\n').split('\n')
         self.stride = [16, 32]
         self.anchor_num = 3
@@ -16,7 +16,7 @@ class YoloFastV2(object):
             dtype=np.float32).reshape(len(self.stride), self.anchor_num, 2)
         self.inpWidth = 352
         self.inpHeight = 352
-        self.net = cv2.dnn.readNet('/home/ubuntu/AutoFocus/Data/model.onnx')
+        self.net = cv2.dnn.readNet('/home/ubuntu/AutoFocus/model.onnx')
         self.confThreshold = confThreshold
         self.nmsThreshold = nmsThreshold
         self.objThreshold = objThreshold
@@ -115,7 +115,8 @@ class YoloFastV2(object):
             if class_id == 0:
                 location = int(len(body_distances) / 6)
 
-            print(f"Take the location {location} : {body_distances[location]} as min distance.")
+            print(f"Take the location {location} : ")
+            print(f"{body_distances[location]} as min distance.")
             # cv2.circle(frame, position[location], 6, (255, 0, 0), -1)
             # cv2.waitKey(1)
             # cv2.imshow("yolo", frame)
